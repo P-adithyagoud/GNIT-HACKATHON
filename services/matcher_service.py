@@ -8,16 +8,26 @@ class MatcherService:
 
     @staticmethod
     def extract_keywords(text):
-        """Pre-processes text and isolates technical keywords."""
+        """Pre-processes text and isolates technical keywords for normalization."""
         if not text: 
             return set()
             
-        # Extract alphanumeric words and lowercase
-        words = re.findall(r'\w+', text.lower())
+        # Extract alphanumeric words, remove underscores/hyphens and lowercase
+        clean_text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text.lower())
+        words = re.findall(r'\w+', clean_text)
         
         # SRE-specific filter (ignore basic language boilerplate)
-        boilerplate = {'a', 'an', 'the', 'and', 'or', 'if', 'to', 'in', 'is', 'it', 'of', 'for', 'with'}
+        boilerplate = {
+            'a', 'an', 'the', 'and', 'or', 'if', 'to', 'in', 'is', 'it', 'of', 'for', 'with', 
+            'pasted', 'logs', 'alerts', 'symptoms', 'recent', 'deployment', 'upgrade', 'observed'
+        }
         return {w for w in words if w not in boilerplate and len(w) > 2}
+
+    @classmethod
+    def generate_incident_signature(cls, text):
+        """Creates a stable technical fingerprint for an incident payload."""
+        keywords = sorted(list(cls.extract_keywords(text)))
+        return "|".join(keywords) if keywords else "unknown_pattern"
 
     @classmethod
     def rank_correlated_knowledge(cls, query, knowledge_base, top_n=3):

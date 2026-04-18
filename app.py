@@ -5,6 +5,7 @@ from services.matcher_service import MatcherService
 from services.ai_service import AIService
 from services.parser import ResponseParser
 from services.kedb_service import KEDBService
+from services.learning_service import LearningService
 import os
 import logging
 
@@ -73,12 +74,9 @@ def analyze():
             result_payload['confidence'] = MatcherService.identify_confidence(len(candidate_pool))
 
         # 5. Archive Discovery
-        logger.info("[LEARNING] Archiving session to cloud for continuous maturity...")
-        SupabaseService.archive_new_discovery(
-            issue=current_query,
-            root_cause=result_payload.get('root_cause', 'Under Investigation'),
-            resolution=result_payload.get('resolution_steps', ['N/A'])[0] if result_payload.get('resolution_steps') else 'N/A'
-        )
+        logger.info("[LEARNING] Enhanced Auto-Learning Pipeline (Production-Safe)")
+        learning_result = LearningService.process_incident(current_query, result_payload)
+        logger.info(f"Learning Pipeline Result: {learning_result.get('status')} | Signature: {learning_result.get('signature')}")
 
         print("[SUCCESS] Intelligence delivery successful.\n")
         return jsonify({'success': True, 'data': result_payload})

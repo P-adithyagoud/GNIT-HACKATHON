@@ -1,0 +1,16 @@
+{
+  "connection|database|exhausted|pool": {
+    "frequency": 1,
+    "root_cause": "PostgreSQL connection pool exhaustion",
+    "promoted": false,
+    "first_seen": "2026-04-19T02:44:57Z",
+    "last_seen": "2026-04-19T02:44:57Z"
+  },
+  "cluster|error|oom|redis|sidekiq|workers": {
+    "frequency": 3,
+    "root_cause": "Redis memory saturation in cluster mode",
+    "promoted": true,
+    "first_seen": "2026-04-19T02:51:26Z",
+    "last_seen": "2026-04-19T02:53:38Z"
+  }
+}

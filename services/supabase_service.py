@@ -37,19 +37,18 @@ class SupabaseService:
             return []
 
     @classmethod
-    def archive_new_discovery(cls, issue, root_cause, resolution):
-        """Persists a new incident analysis to the growing knowledge base."""
+    def archive_new_discovery(cls, issue, root_cause, resolution, tags=None):
+        """Persists a new incident analysis to the cloud for historical context."""
         client = cls.get_connection()
-        if not client: 
-            return None
-            
+        if not client: return None
         try:
             data = {
                 "issue": issue, 
                 "root_cause": root_cause, 
-                "resolution": resolution
+                "resolution": resolution,
+                "tags": tags or []
             }
             return client.table('incidents').insert(data).execute().data
         except Exception as e:
-            print(f"Knowledge Archive Error: {str(e)}")
+            print(f"Cloud Archive Error: {str(e)}")
             return None

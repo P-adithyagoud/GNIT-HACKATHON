@@ -34,6 +34,7 @@ class Config:
     {
       "severity": "SEV1 | SEV2 | SEV3",
       "confidence": "High | Medium | Low",
+      "confidence_score": 0-100,
       "mode": "matched | partial | new",
       "root_cause": "The specific technical reason",
       "immediate_actions": [
@@ -71,3 +72,10 @@ class Config:
         "validation_steps": ["Check service health"],
         "similar_incidents": []
     }
+
+    # Auto-Learning Thresholds
+    LEARNING_THRESHOLD_FREQUENCY = 3
+    LEARNING_THRESHOLD_CONFIDENCE = 0.7
+    LEARNING_MIN_ROOT_CAUSE_LENGTH = 10
+    LEARNING_MIN_ACTIONS_COUNT = 2
+    LEARNING_SIMILARITY_MERGE_THRESHOLD = 0.8
