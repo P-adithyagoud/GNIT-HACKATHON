@@ -162,20 +162,31 @@ class UIController {
         if (data.similar_incidents && data.similar_incidents.length > 0) {
             similarContainer.classList.remove('hidden');
             similarList.innerHTML = data.similar_incidents.map(inc => `
-                <div class="relative p-4 bg-white/5 border ${inc.is_primary_match ? 'border-blue-500/50 ring-1 ring-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'border-white/10'} rounded-xl hover:border-blue-500/30 transition-all duration-300">
+                <div class="correlation-card group relative p-4 bg-white/5 border ${inc.is_primary_match ? 'border-blue-500/50 ring-1 ring-blue-500/30' : 'border-white/10'} rounded-xl cursor-pointer hover:bg-white/10 transition-all duration-300" onclick="this.classList.toggle('active')">
                     ${inc.is_primary_match ? `
-                        <div class="absolute -top-3 -right-3 bg-blue-600 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1 animate-bounce">
-                            <i class="fas fa-link"></i> PRIMARY MAPPING
+                        <div class="absolute -top-3 -right-3 bg-blue-600 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+                            <i class="fas fa-link"></i> PRIMARY
                         </div>
                     ` : ''}
-                    <div class="text-[10px] font-bold ${inc.source === 'LOCAL KEDB' ? 'text-blue-400' : 'text-purple-400'} uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <i class="fas ${inc.source === 'LOCAL KEDB' ? 'fa-database' : 'fa-cloud'}"></i> ${inc.source || 'KEDB Correlation'}
+                    
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-[10px] font-bold ${inc.source === 'LOCAL KEDB' ? 'text-blue-400' : 'text-purple-400'} uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas ${inc.source === 'LOCAL KEDB' ? 'fa-database' : 'fa-cloud'}"></i> ${inc.source || 'KEDB'}
+                        </div>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-500 chevron"></i>
                     </div>
-                    <div class="text-sm font-bold text-white mb-2 truncate" title="${this.escape(inc.issue)}">${this.escape(inc.issue)}</div>
-                    <div class="grid grid-cols-1 gap-2 mt-3 pt-3 border-t border-white/10">
-                        <div>
-                            <div class="text-[9px] uppercase text-gray-500 font-bold">Standard Fix Applied</div>
-                            <div class="text-xs text-gray-300 line-clamp-2">${this.escape(inc.resolution)}</div>
+
+                    <div class="text-sm font-bold text-white mb-1 truncate" title="${this.escape(inc.issue)}">${this.escape(inc.issue)}</div>
+                    <div class="text-[10px] text-slate-400 line-clamp-1 group-[.active]:hidden">${this.escape(inc.resolution)}</div>
+
+                    <div class="detail-expand space-y-3 pt-3 border-t border-white/5">
+                        <div class="space-y-1">
+                            <div class="text-[8px] font-bold text-blue-400 uppercase tracking-tighter">Historical Root Cause</div>
+                            <div class="text-[11px] text-slate-300 leading-snug">${this.escape(inc.root_cause)}</div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="text-[8px] font-bold text-emerald-400 uppercase tracking-tighter">Standard Resolution</div>
+                            <div class="text-[11px] text-slate-300 leading-snug">${this.escape(inc.resolution)}</div>
                         </div>
                     </div>
                 </div>

@@ -28,6 +28,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+        .correlation-card .detail-expand {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .correlation-card.active .detail-expand {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 0.75rem;
+        }
+        .correlation-card .chevron {
+            transition: transform 0.3s ease;
+        }
+        .correlation-card.active .chevron {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="bg-[#0f172a] text-slate-100 overflow-x-hidden">

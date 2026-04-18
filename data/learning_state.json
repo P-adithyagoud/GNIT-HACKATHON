@@ -26,5 +26,12 @@
     "promoted": false,
     "first_seen": "2026-04-19T03:00:25Z",
     "last_seen": "2026-04-19T03:05:01Z"
+  },
+  "connections|exhausted": {
+    "frequency": 1,
+    "root_cause": "Connection pool misconfiguration and potential leaks",
+    "promoted": false,
+    "first_seen": "2026-04-19T03:22:57Z",
+    "last_seen": "2026-04-19T03:22:57Z"
   }
 }
