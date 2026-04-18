@@ -4,6 +4,7 @@ from services.supabase_service import SupabaseService
 from services.matcher_service import MatcherService
 from services.ai_service import AIService
 from services.parser import ResponseParser
+from services.kedb_service import KEDBService
 import os
 
 # Application Entry Point
@@ -18,7 +19,7 @@ def index():
 def analyze():
     """
     Main Intelligence Pipeline:
-    Input (User Logs) -> Retrieval (DB) -> Correlation (Logic) -> Analysis (LLM) -> Insight.
+    Input (User Logs) -> Retrieval (KEDB + Cloud) -> Correlation -> Analysis (LLM) -> Insight.
     """
     try:
         # 1. Parse Input
@@ -29,15 +30,17 @@ def analyze():
         current_query = request_input['incident'].strip()
         print(f"\n[SYSTEM] Received incident report: {current_query[:50]}...")
 
-        # 2. Knowledge Base Retrieval
-        print("[DATABASE] Fetching production knowledge base...")
-        archived_knowledge = SupabaseService.fetch_historical_incidents()
+        # 2. Knowledge Base Retrieval (Hybrid Local KEDB + Cloud Supabase Archive)
+        print("[DATABASE] Accessing Hybrid Knowledge Base (KEDB + Cloud Archive)...")
+        local_kedb = KEDBService.find_known_errors()
+        cloud_history = SupabaseService.fetch_historical_incidents()
+        hybrid_knowledge = local_kedb + cloud_history
         
-        # 3. Correlation & Confidence Matrix
-        print("[MATCHER] Correlating current issue with past historical data...")
-        top_matches = MatcherService.rank_correlated_knowledge(current_query, archived_knowledge)
+        # 3. Correlation & KEDB Matching
+        print("[MATCHER] Correlating current report against KEDB entries...")
+        top_matches = MatcherService.rank_correlated_knowledge(current_query, hybrid_knowledge)
         confidence_level = MatcherService.identify_confidence(len(top_matches))
-        print(f"[RESULT] Correlation complete. Strategy Confidence: {confidence_level}")
+        print(f"[RESULT] Match complete. KEDB Correlation: {confidence_level}")
 
         # 4. Expert AI Analysis (Groq Pipeline)
         print("[AI EXPERT] Consulting SRE Knowledge Engine (Mixtral 8x7B)...")

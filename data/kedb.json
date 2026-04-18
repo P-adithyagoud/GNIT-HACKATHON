@@ -1,0 +1,20 @@
+[
+  {
+    "issue": "SEV1: Generic 5x3 errors and API timeouts observed globally across and payment endpoints",
+    "root_cause": "PostgreSQL connection pool exhaustion due to missing pooler in middleware",
+    "resolution": "Deploy PgBouncer for connection pooling and scale DB read replicas",
+    "tags": ["database", "postgres", "timeout", "scaling"]
+  },
+  {
+    "issue": "Slow response times (>1.5s) on static assets and images in production environment",
+    "root_cause": "CDN cache miss spike due to improper TTL header configuration in S3 bucket",
+    "resolution": "Adjust Cache-Control headers to max-age=31536000 and invalidate CloudFront cache",
+    "tags": ["cdn", "performance", "s3", "latency"]
+  },
+  {
+    "issue": "Immediate OOMKilled events for node-service pods after deploying v1.2.4",
+    "root_cause": "Node.js memory leak in the streaming logs collector introduced in the latest release",
+    "resolution": "Rollback to v1.2.3 and patch the unclosed event listener and stream buffer",
+    "tags": ["kubernetes", "memory-leak", "nodejs", "crash"]
+  }
+]

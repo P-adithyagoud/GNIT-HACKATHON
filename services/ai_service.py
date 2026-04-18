@@ -5,23 +5,23 @@ from config import Config
 class AIService:
     """
     SRE Expert Engine: Conducts intelligent analysis using Groq infrastructure.
-    Refactored for clarity, functionality remains unchanged.
+    Enhanced to prioritize Known Error Database (KEDB) context.
     """
 
     @staticmethod
     def generate_resolution_analysis(query, matched_knowledge):
-        """Generates a detailed incident report using RAG-lite context."""
+        """Generates a detailed incident report using Hybrid KEDB context."""
         client_key = os.getenv("GROQ_API_KEY")
         if not client_key:
             return None
 
-        # Build context from past historical data
-        past_cases = ""
+        # Build context from Known Error Database (KEDB) entries
+        knowledge_context = ""
         for i, inc in enumerate(matched_knowledge):
-            past_cases += f"\n[PAST CASE {i+1}]:\n- Issue: {inc['issue']}\n- Cause: {inc['root_cause']}\n- Fix: {inc['resolution']}\n"
+            knowledge_context += f"\n[KEDB ENTRY {i+1}]:\n- Known Issue: {inc['issue']}\n- Root Cause: {inc['root_cause']}\n- Proven Resolution: {inc['resolution']}\n"
 
         system_instruction = Config.SYSTEM_PROMPT
-        user_input = f"HISTORICAL KNOWLEDGE BASE:\n{past_cases}\n\nCURRENT PRODUCTION ISSUE:\n{query}"
+        user_content = f"REFERENCE FROM KNOWN ERROR DATABASE (KEDB):\n{knowledge_context}\n\nNEW INCIDENT TO ANALYZE:\n{query}"
 
         try:
             with httpx.Client(timeout=30.0) as client:
@@ -32,7 +32,7 @@ class AIService:
                         "model": Config.MODEL_NAME,
                         "messages": [
                             {"role": "system", "content": system_instruction},
-                            {"role": "user", "content": user_input}
+                            {"role": "user", "content": user_content}
                         ],
                         "temperature": Config.TEMPERATURE,
                         "max_tokens": Config.MAX_TOKENS
