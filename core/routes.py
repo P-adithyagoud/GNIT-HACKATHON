@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from services.pipeline import IncidentPipeline
 
-# Define the main blueprint for the application
+# Define the main blueprint for the application using the 'core' package
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')

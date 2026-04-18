@@ -2,8 +2,8 @@ from flask import Flask
 import os
 
 def create_app():
-    """Application factory to initialize the Incident Response system."""
-    # Calculate absolute paths relative to this file
+    """Application factory with absolute path hardening for Vercel."""
+    # Absolute paths are required for Vercel serverless functions
     base_dir = os.path.abspath(os.path.dirname(__file__))
     template_dir = os.path.join(base_dir, '..', 'templates')
     static_dir = os.path.join(base_dir, '..', 'static')
@@ -12,8 +12,8 @@ def create_app():
                 template_folder=template_dir, 
                 static_folder=static_dir)
     
-    # Register Routes
-    from app.routes import main_bp
+    # Register Routes from the new 'core' package
+    from core.routes import main_bp
     app.register_blueprint(main_bp)
     
     return app
