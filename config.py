@@ -5,8 +5,8 @@ class Config:
     
     # Engine Settings
     MODEL_NAME = "mixtral-8x7b-32768"
-    TEMPERATURE = 0.1  # Low temp for deterministic, safe SRE actions
-    MAX_TOKENS = 1500
+    TEMPERATURE = 0.1
+    MAX_TOKENS = 2000 # Increased to handle more context
 
     # The "Incident Commander" Intelligence Logic
     SYSTEM_PROMPT = """
@@ -14,14 +14,10 @@ class Config:
     Act decisively, but safely. Always prioritize system stability and user impact.
 
     ---
-    DECISION FRAMEWORK
-    1. Similarity Judgment:
-       - Strong Match → Same pattern (DB overload, etc.)
-       - Partial Match → Related symptoms, different cause
-       - No Match → New failure pattern
-
-    2. Mode Selection:
-       - 'matched' | 'partial' | 'new'
+    RANKING TASK:
+    You will be provided with a list of "Candidate Historical Cases" from both a local KEDB and a Cloud Archive.
+    Your task is to analyze these cases, determine which ones are most technically relevant to the current issue, 
+    and return the top 3 in the `similar_incidents` field of your JSON, ordered by relevance.
 
     ---
     SEVERITY CLASSIFICATION (STRICT)
@@ -46,6 +42,13 @@ class Config:
       "resolution_steps": ["Step 1", "Step 2"],
       "preventive_measures": ["Measure 1", "Measure 2"],
       "validation_steps": ["How to confirm recovery"],
+      "similar_incidents": [
+        {
+          "issue": "Brief description of matched case",
+          "root_cause": "The cause in that case",
+          "resolution": "The fix used in that case"
+        }
+      ],
       "summary": "High-level summary (max 25 words)"
     }
     """
@@ -54,13 +57,11 @@ class Config:
         "severity": "SEV2",
         "confidence": "Low",
         "mode": "new",
-        "summary": "Standard analysis pipeline reached a protective timeout.",
-        "root_cause": "System-wide diagnostic bottleneck or API latency.",
-        "immediate_actions": [
-            {"step": "Verify backend connectivity", "owner": "DevOps", "priority": "high"},
-            {"step": "Check Groq API status", "owner": "Backend", "priority": "medium"}
-        ],
-        "resolution_steps": ["Retry analysis in 30 seconds", "Monitor system load"],
-        "preventive_measures": ["Increase timeout thresholds", "Scale diagnostic workers"],
-        "validation_steps": ["Ensure /analyze endpoint returns 200"],
+        "summary": "Analysis fallback triggered.",
+        "root_cause": "Diagnostic bottleneck.",
+        "immediate_actions": [{"step": "Verify backend connectivity", "owner": "DevOps", "priority": "high"}],
+        "resolution_steps": ["Retry analysis in 30 seconds"],
+        "preventive_measures": ["Increase timeout thresholds"],
+        "validation_steps": ["Check service health"],
+        "similar_incidents": []
     }

@@ -4,24 +4,25 @@ from config import Config
 
 class AIService:
     """
-    SRE Expert Engine: Conducts intelligent analysis using Groq infrastructure.
-    Enhanced to prioritize Known Error Database (KEDB) context.
+    SRE Expert Engine: Conducts intelligent analysis and knowledge re-ranking.
     """
 
     @staticmethod
-    def generate_resolution_analysis(query, matched_knowledge):
-        """Generates a detailed incident report using Hybrid KEDB context."""
+    def generate_resolution_analysis(query, candidate_pool):
+        """Generates resolution and ranks the most relevant historical context."""
         client_key = os.getenv("GROQ_API_KEY")
         if not client_key:
             return None
 
-        # Build context from Known Error Database (KEDB) entries
-        knowledge_context = ""
-        for i, inc in enumerate(matched_knowledge):
-            knowledge_context += f"\n[KEDB ENTRY {i+1}]:\n- Known Issue: {inc['issue']}\n- Root Cause: {inc['root_cause']}\n- Proven Resolution: {inc['resolution']}\n"
+        # Build candidate knowledge base for AI ranking
+        candidate_context = ""
+        for i, inc in enumerate(candidate_pool):
+            # Label the source for better AI understanding
+            source = "LOCAL KEDB" if i < 3 else "CLOUD ARCHIVE"
+            candidate_context += f"\n[CANDIDATE {i+1} - {source}]:\n- Issue: {inc.get('issue')}\n- Cause: {inc.get('root_cause')}\n- Fix: {inc.get('resolution')}\n"
 
         system_instruction = Config.SYSTEM_PROMPT
-        user_content = f"REFERENCE FROM KNOWN ERROR DATABASE (KEDB):\n{knowledge_context}\n\nNEW INCIDENT TO ANALYZE:\n{query}"
+        user_content = f"CANDIDATE HISTORICAL CASES (Analyze and Select Top 3):\n{candidate_context}\n\nCURRENT PRODUCTION ISSUE:\n{query}"
 
         try:
             with httpx.Client(timeout=30.0) as client:

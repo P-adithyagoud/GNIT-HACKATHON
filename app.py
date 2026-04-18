@@ -18,8 +18,8 @@ def index():
 @app.route('/analyze', methods=['POST'])
 def analyze():
     """
-    Main Intelligence Pipeline:
-    Input (User Logs) -> Retrieval (KEDB + Cloud) -> Correlation -> Analysis (LLM) -> Insight.
+    Intelligence Pipeline:
+    Input -> Retrieval (3 KEDB + 3 Supabase) -> AI Re-ranking -> Insight.
     """
     try:
         # 1. Parse Input
@@ -30,36 +30,34 @@ def analyze():
         current_query = request_input['incident'].strip()
         print(f"\n[SYSTEM] Received incident report: {current_query[:50]}...")
 
-        # 2. Knowledge Base Retrieval (Hybrid Local KEDB + Cloud Supabase Archive)
-        print("[DATABASE] Accessing Hybrid Knowledge Base (KEDB + Cloud Archive)...")
-        local_kedb = KEDBService.find_known_errors()
-        cloud_history = SupabaseService.fetch_historical_incidents()
-        hybrid_knowledge = local_kedb + cloud_history
+        # 2. Hybrid Retrieval (3 Local KEDB + 3 Cloud Archive)
+        print("[DATABASE] Fetching candidates from KEDB and Cloud Archive...")
+        local_db = KEDBService.find_known_errors()
+        cloud_db = SupabaseService.fetch_historical_incidents()
         
-        # 3. Correlation & KEDB Matching
-        print("[MATCHER] Correlating current report against KEDB entries...")
-        top_matches = MatcherService.rank_correlated_knowledge(current_query, hybrid_knowledge)
-        confidence_level = MatcherService.identify_confidence(len(top_matches))
-        print(f"[RESULT] Match complete. KEDB Correlation: {confidence_level}")
+        # Get top 3 from each source to give AI a rich but manageable candidate pool
+        local_candidates = MatcherService.rank_correlated_knowledge(current_query, local_db, top_n=3)
+        cloud_candidates = MatcherService.rank_correlated_knowledge(current_query, cloud_db, top_n=3)
+        candidate_pool = local_candidates + cloud_candidates
 
-        # 4. Expert AI Analysis (Groq Pipeline)
-        print("[AI EXPERT] Consulting SRE Knowledge Engine (Mixtral 8x7B)...")
-        expert_output_raw = AIService.generate_resolution_analysis(current_query, top_matches)
+        # 3. AI Analysis & Re-ranking
+        print(f"[AI EXPERT] Analyzing {len(candidate_pool)} candidate cases for best fit...")
+        expert_output_raw = AIService.generate_resolution_analysis(current_query, candidate_pool)
         
-        # 5. Structure & Sanitize Response
+        # 4. Structure & Sanitize Response
         result_payload = ResponseParser.parse_json(expert_output_raw)
         
         if not result_payload:
-            print("[WARNING] AI response format unexpected. Deploying safety fallback.")
+            print("[WARNING] AI response format failed. Triggering recovery fallback.")
             result_payload = Config.FALLBACK_RESPONSE.copy()
             result_payload["is_fallback"] = True
             
-        # Enrich payload for Frontend
-        result_payload['confidence'] = confidence_level
-        result_payload['similar_incidents'] = top_matches
+        # Ensure confidence level is calculated based on AI determination or local counts
+        if 'confidence' not in result_payload:
+            result_payload['confidence'] = MatcherService.identify_confidence(len(candidate_pool))
 
-        # 6. Archive Discovery (Post-Analysis Learning)
-        print("[LEARNING] Archiving new analysis into knowledge base for future maturity...")
+        # 5. Archive Discovery
+        print("[LEARNING] Archiving session to cloud for continuous maturity...")
         SupabaseService.archive_new_discovery(
             issue=current_query,
             root_cause=result_payload.get('root_cause', 'Under Investigation'),
@@ -74,5 +72,4 @@ def analyze():
         return jsonify({'success': False, 'error': 'Internal pipeline encountered a bottleneck.'}), 500
 
 if __name__ == '__main__':
-    # Local development entry point
     app.run(debug=True, port=5000)
