@@ -116,61 +116,75 @@ class UIController {
     renderResults(data, isFallback = false) {
         this.resultData = data;
         
-        // Confidence Badge
-        const badge = document.getElementById('confidenceBadge');
-        const text = document.getElementById('confidenceText');
-        text.textContent = data.confidence || 'Medium';
-        
-        badge.className = 'status-badge'; // Reset
-        const levelClass = (data.confidence || 'medium').toLowerCase();
-        badge.classList.add(`confidence-${levelClass}`);
+        // Meta Badges (SEV, Mode, Confidence)
+        const badgeContainer = document.getElementById('meta-badges');
+        badgeContainer.innerHTML = `
+            <span class="px-3 py-1 bg-red-500/20 text-red-400 text-xs font-bold rounded-lg border border-red-500/30 uppercase tracking-widest">${data.severity || 'SEV2'}</span>
+            <span class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-lg border border-purple-500/30 uppercase tracking-widest">MODE: ${data.mode || 'NEW'}</span>
+            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-lg border border-blue-500/30 uppercase tracking-widest">${data.confidence || 'Medium'} CONFIDENCE</span>
+        `;
 
-        // Summary & Root Cause
-        document.getElementById('incidentSummary').textContent = data.incident_summary;
-        document.getElementById('rootCauseText').textContent = data.root_cause;
+        // Text Content
+        document.getElementById('incident-summary').textContent = data.summary || data.incident_summary;
+        document.getElementById('root-cause').textContent = data.root_cause;
 
-        // Populate Lists
-        this.populateList('resolutionList', data.resolution_steps, 'text-slate-300');
-        this.populateList('immediateList', data.immediate_actions, 'text-amber-200');
+        // Populate Immediate Actions (Complex Objects)
+        const immediateList = document.getElementById('immediate-actions');
+        immediateList.innerHTML = (data.immediate_actions || []).map(action => `
+            <li class="p-4 bg-white/5 rounded-lg border border-white/10 flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase py-0.5 px-2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">${action.priority} priority</span>
+                    <span class="text-[10px] items-center gap-1 font-bold uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                        <i class="fas fa-user-shield"></i> ${action.owner}
+                    </span>
+                </div>
+                <p class="text-white text-sm font-medium">${this.escape(action.step)}</p>
+            </li>
+        `).join('');
 
-        // Similar Incidents
-        const similarSection = document.getElementById('similarIncidentsSection');
-        const similarList = document.getElementById('similarIncidentsList');
+        // Populate Simple Lists
+        this.populateSimpleList('resolution-steps', data.resolution_steps);
+        this.populateSimpleList('validation-steps', data.validation_steps);
+        this.populateSimpleList('preventive-measures', data.preventive_measures);
+
+        // Similar Incidents (KEDB)
+        const similarContainer = document.getElementById('similar-incidents-container');
+        const similarList = document.getElementById('similar-incidents');
         
         if (data.similar_incidents && data.similar_incidents.length > 0) {
-            similarSection.classList.remove('hidden');
+            similarContainer.classList.remove('hidden');
             similarList.innerHTML = data.similar_incidents.map(inc => `
-                <div class="p-4 bg-slate-800/50 border border-white/5 rounded-xl">
-                    <div class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Past Incident</div>
-                    <div class="text-sm font-semibold text-white mb-2">${this.escape(inc.issue)}</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-3 border-t border-white/5">
+                <div class="p-4 bg-white/5 border border-white/10 rounded-xl hover:border-blue-500/30 transition-colors">
+                    <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-database"></i> KEDB Correlation
+                    </div>
+                    <div class="text-sm font-bold text-white mb-2 truncate">${this.escape(inc.issue)}</div>
+                    <div class="grid grid-cols-1 gap-2 mt-3 pt-3 border-t border-white/10">
                         <div>
-                            <div class="text-[10px] uppercase text-slate-500 font-bold mb-1">Root Cause</div>
-                            <div class="text-xs text-slate-400">${this.escape(inc.root_cause)}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase text-slate-500 font-bold mb-1">Resolution</div>
-                            <div class="text-xs text-slate-400">${this.escape(inc.resolution)}</div>
+                            <div class="text-[9px] uppercase text-gray-500 font-bold">Standard Fix</div>
+                            <div class="text-xs text-gray-300 line-clamp-2">${this.escape(inc.resolution)}</div>
                         </div>
                     </div>
                 </div>
             `).join('');
         } else {
-            similarSection.classList.add('hidden');
+            similarContainer.classList.add('hidden');
         }
 
         // Fallback Note
         this.fallbackIndicator.classList.toggle('hidden', !isFallback);
     }
 
-    populateList(elementId, items, textClass) {
+    populateSimpleList(elementId, items) {
         const element = document.getElementById(elementId);
-        element.innerHTML = items
-            .map(item => `<li class="${textClass} text-sm leading-relaxed">${this.escape(item)}</li>`)
+        if (!element) return;
+        element.innerHTML = (items || [])
+            .map(item => `<li class="text-gray-300 text-sm py-1">${this.escape(item)}</li>`)
             .join('');
     }
 
     escape(str) {
+        if (!str) return '';
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
@@ -182,31 +196,39 @@ class UIController {
         const report = this.generateReport(this.resultData);
         navigator.clipboard.writeText(report).then(() => {
             const originalText = this.copyBtn.textContent;
-            this.copyBtn.textContent = 'Copied to Clipboard!';
-            this.copyBtn.classList.add('bg-green-600');
+            this.copyBtn.innerHTML = '<i class="fas fa-check"></i> Analysis Copied!';
+            this.copyBtn.classList.remove('bg-blue-600');
+            this.copyBtn.classList.add('bg-emerald-600');
             
             setTimeout(() => {
-                this.copyBtn.textContent = originalText;
-                this.copyBtn.classList.remove('bg-green-600');
+                this.copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Full Analysis';
+                this.copyBtn.classList.remove('bg-emerald-600');
+                this.copyBtn.classList.add('bg-blue-600');
             }, 2000);
         });
     }
 
     generateReport(data) {
         return [
-            'INCIDENT ANALYSIS REPORT',
-            '========================',
-            `Summary: ${data.incident_summary}`,
-            `Confidence: ${data.confidence}`,
+            `SRE INCIDENT COMMANDER REPORT [${data.severity || 'SEV2'}]`,
+            '==========================================',
+            `Summary: ${data.summary || data.incident_summary}`,
+            `Mode: ${data.mode || 'NEW'} | Confidence: ${data.confidence}`,
             '',
-            'ROOT CAUSE:',
+            'ROOT CAUSE ANALYSIS:',
             `• ${data.root_cause}`,
             '',
-            'RESOLUTION STEPS:',
-            ...data.resolution_steps.map((s, i) => `${i + 1}. ${s}`),
+            'IMMEDIATE ACTIONS (PRIORITY):',
+            ...(data.immediate_actions || []).map(a => `• [${a.priority.toUpperCase()}] ${a.owner}: ${a.step}`),
             '',
-            'IMMEDIATE ACTIONS:',
-            ...data.immediate_actions.map(a => `• ${a}`)
+            'PERMANENT RESOLUTION:',
+            ...(data.resolution_steps || []).map((s, i) => `${i + 1}. ${s}`),
+            '',
+            'SYSTEM VALIDATION:',
+            ...(data.validation_steps || []).map(v => `• ${v}`),
+            '',
+            'PREVENTIVE MEASURES:',
+            ...(data.preventive_measures || []).map(p => `• ${p}`)
         ].join('\n');
     }
 
