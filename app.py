@@ -73,16 +73,23 @@ def analyze():
         if 'confidence' not in result_payload:
             result_payload['confidence'] = MatcherService.identify_confidence(len(candidate_pool))
 
-        # 5. Archive Discovery
-        logger.info("[LEARNING] Enhanced Auto-Learning Pipeline (Production-Safe)")
-        learning_result = LearningService.process_incident(current_query, result_payload)
-        logger.info(f"Learning Pipeline Result: {learning_result.get('status')} | Signature: {learning_result.get('signature')}")
+        # 5. Background Learning Pipeline (Non-blocking)
+        import threading
+        def run_learning():
+            try:
+                logger.info("[LEARNING] Starting asynchronous knowledge maturation...")
+                status = LearningService.process_incident(current_query, result_payload)
+                logger.info(f"[LEARNING] Progress: {status.get('status')} | Sig: {status.get('signature')}")
+            except Exception as le:
+                logger.error(f"[LEARNING ERROR] Background processing failed: {str(le)}")
 
-        print("[SUCCESS] Intelligence delivery successful.\n")
+        threading.Thread(target=run_learning, daemon=True).start()
+
+        logger.info("[SUCCESS] Intelligence delivery complete.")
         return jsonify({'success': True, 'data': result_payload})
 
     except Exception as e:
-        print(f"[ERROR] Pipeline Exception: {str(e)}")
+        logger.error(f"[ERROR] Pipeline Exception: {str(e)}")
         return jsonify({'success': False, 'error': 'Internal pipeline encountered a bottleneck.'}), 500
 
 if __name__ == '__main__':
