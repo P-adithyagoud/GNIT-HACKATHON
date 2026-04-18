@@ -16,15 +16,18 @@ class ResponseParser:
             if not isinstance(data, dict):
                 return None
             
-            required_keys = ['root_causes', 'resolution_steps', 'priority_actions', 'confidence']
+            # Updated required keys based on the new mandatory format
+            required_keys = ['incident_summary', 'root_cause', 'immediate_actions', 'resolution_steps', 'confidence']
             if not all(key in data for key in required_keys):
+                print(f"Parser Error: Missing keys. Found {list(data.keys())}")
                 return None
             
-            # Additional validation of nested structure
-            if not isinstance(data['priority_actions'], dict):
+            # Ensure lists are lists
+            if not isinstance(data['immediate_actions'], list) or not isinstance(data['resolution_steps'], list):
                 return None
             
             return data
         
-        except (json.JSONDecodeError, ValueError, TypeError):
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
+            print(f"Parser Exception: {str(e)}")
             return None

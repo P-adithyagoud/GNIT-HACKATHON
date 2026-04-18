@@ -86,61 +86,62 @@
 
             <!-- Results Section -->
             <div id="results" class="hidden space-y-8 animate-fade-in">
-                <div class="flex justify-center">
+                <div class="flex flex-col items-center gap-4">
                     <div id="confidenceBadge" class="status-badge">
                         Confidence: <span id="confidenceText"></span>
                     </div>
                 </div>
 
+                <!-- Incident Summary -->
+                <div class="glass-panel p-8 border-t-4 border-t-white/10">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Incident Summary</h2>
+                    <p id="incidentSummary" class="text-2xl font-semibold text-white leading-tight"></p>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Root Causes -->
+                    <!-- Root Cause -->
                     <div class="glass-panel p-6 border-l-4 border-l-red-500/50">
                         <h2 class="text-xl font-bold text-red-400 mb-6 flex items-center">
                             <span class="w-1.5 h-6 bg-red-500 rounded-full mr-3"></span>
-                            Root Causes
+                            Root Cause
                         </h2>
-                        <ul id="rootCausesList" class="space-y-4"></ul>
+                        <p id="rootCauseText" class="text-slate-300 leading-relaxed"></p>
                     </div>
 
                     <!-- Resolution Steps -->
                     <div class="glass-panel p-6 border-l-4 border-l-blue-500/50">
                         <h2 class="text-xl font-bold text-blue-400 mb-6 flex items-center">
                             <span class="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></span>
-                            Resolution Strategy
+                            Resolution Steps
                         </h2>
-                        <ol id="resolutionList" class="space-y-4 list-decimal list-inside"></ol>
+                        <ol id="resolutionList" class="space-y-4 list-decimal list-inside text-slate-300"></ol>
                     </div>
                 </div>
 
-                <!-- Priority Actions Actionable Board -->
+                <!-- Actionable Board -->
                 <div class="glass-panel p-8">
-                    <h2 class="text-2xl font-bold mb-8 text-white">Priority Action Items</h2>
+                    <h2 class="text-2xl font-bold mb-8 text-white">Execution Plan</h2>
                     
                     <div class="space-y-6">
                         <div class="p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
                             <h3 class="text-amber-400 font-bold uppercase text-xs tracking-widest mb-4 flex items-center">
                                 <span class="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                                Phase 1: Immediate Mitigation
+                                Immediate Actions
                             </h3>
                             <ul id="immediateList" class="space-y-3 pl-4"></ul>
                         </div>
-
-                        <div class="p-6 bg-slate-800/30 border border-white/5 rounded-2xl">
-                            <h3 class="text-slate-300 font-bold uppercase text-xs tracking-widest mb-4 flex items-center">
-                                <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
-                                Phase 2: Short-term Recovery
-                            </h3>
-                            <ul id="shortTermList" class="space-y-3 pl-4"></ul>
-                        </div>
-
-                        <div class="p-6 bg-slate-800/30 border border-white/5 rounded-2xl">
-                            <h3 class="text-slate-300 font-bold uppercase text-xs tracking-widest mb-4 flex items-center">
-                                <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
-                                Phase 3: Long-term Hardening
-                            </h3>
-                            <ul id="longTermList" class="space-y-3 pl-4"></ul>
-                        </div>
                     </div>
+                </div>
+
+                <!-- Similar Incidents Context -->
+                <div id="similarIncidentsSection" class="hidden glass-panel p-8 bg-slate-900/40">
+                    <h2 class="text-xl font-bold mb-6 text-slate-400 flex items-center">
+                        <svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        Past Knowledge Context
+                    </h2>
+                    <div id="similarIncidentsList" class="space-y-6"></div>
                 </div>
 
                 <!-- Footer Actions -->

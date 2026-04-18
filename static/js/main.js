@@ -119,18 +119,45 @@ class UIController {
         // Confidence Badge
         const badge = document.getElementById('confidenceBadge');
         const text = document.getElementById('confidenceText');
-        text.textContent = data.confidence;
+        text.textContent = data.confidence || 'Medium';
         
         badge.className = 'status-badge'; // Reset
-        const levelClass = data.confidence.toLowerCase();
+        const levelClass = (data.confidence || 'medium').toLowerCase();
         badge.classList.add(`confidence-${levelClass}`);
 
+        // Summary & Root Cause
+        document.getElementById('incidentSummary').textContent = data.incident_summary;
+        document.getElementById('rootCauseText').textContent = data.root_cause;
+
         // Populate Lists
-        this.populateList('rootCausesList', data.root_causes, 'text-red-400');
-        this.populateList('resolutionList', data.resolution_steps, 'text-blue-400');
-        this.populateList('immediateList', data.priority_actions.immediate, 'text-amber-200');
-        this.populateList('shortTermList', data.priority_actions.short_term, 'text-slate-300');
-        this.populateList('longTermList', data.priority_actions.long_term, 'text-slate-300');
+        this.populateList('resolutionList', data.resolution_steps, 'text-slate-300');
+        this.populateList('immediateList', data.immediate_actions, 'text-amber-200');
+
+        // Similar Incidents
+        const similarSection = document.getElementById('similarIncidentsSection');
+        const similarList = document.getElementById('similarIncidentsList');
+        
+        if (data.similar_incidents && data.similar_incidents.length > 0) {
+            similarSection.classList.remove('hidden');
+            similarList.innerHTML = data.similar_incidents.map(inc => `
+                <div class="p-4 bg-slate-800/50 border border-white/5 rounded-xl">
+                    <div class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Past Incident</div>
+                    <div class="text-sm font-semibold text-white mb-2">${this.escape(inc.issue)}</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-3 border-t border-white/5">
+                        <div>
+                            <div class="text-[10px] uppercase text-slate-500 font-bold mb-1">Root Cause</div>
+                            <div class="text-xs text-slate-400">${this.escape(inc.root_cause)}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase text-slate-500 font-bold mb-1">Resolution</div>
+                            <div class="text-xs text-slate-400">${this.escape(inc.resolution)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            similarSection.classList.add('hidden');
+        }
 
         // Fallback Note
         this.fallbackIndicator.classList.toggle('hidden', !isFallback);
@@ -169,23 +196,17 @@ class UIController {
         return [
             'INCIDENT ANALYSIS REPORT',
             '========================',
+            `Summary: ${data.incident_summary}`,
             `Confidence: ${data.confidence}`,
             '',
-            'ROOT CAUSES:',
-            ...data.root_causes.map(c => `• ${c}`),
+            'ROOT CAUSE:',
+            `• ${data.root_cause}`,
             '',
             'RESOLUTION STEPS:',
             ...data.resolution_steps.map((s, i) => `${i + 1}. ${s}`),
             '',
-            'PRIORITY ACTIONS:',
-            'Immediate Mitigation:',
-            ...data.priority_actions.immediate.map(a => `• ${a}`),
-            '',
-            'Short-term Recovery:',
-            ...data.priority_actions.short_term.map(a => `• ${a}`),
-            '',
-            'Long-term Hardening:',
-            ...data.priority_actions.long_term.map(a => `• ${a}`)
+            'IMMEDIATE ACTIONS:',
+            ...data.immediate_actions.map(a => `• ${a}`)
         ].join('\n');
     }
 

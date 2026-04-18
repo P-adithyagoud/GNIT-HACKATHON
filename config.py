@@ -7,55 +7,40 @@ class Config:
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
     
+    # Supabase configuration
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+
     # Model configuration
     MODEL_NAME = 'mixtral-8x7b-32768'
-    TEMPERATURE = 0.2
-    MAX_TOKENS = 800
+    TEMPERATURE = 0.1
+    MAX_TOKENS = 1000
 
-    SYSTEM_PROMPT = """You are a senior Site Reliability Engineer with deep experience in production outages.
-Analyze the following incident and return ONLY valid JSON. No markdown, no explanations outside JSON.
-Each list must contain concise, actionable items. Avoid generic advice.
+    SYSTEM_PROMPT = """You are a senior DevOps and Site Reliability Engineer.
+Your goal is to provide a structured, actionable response to a production incident.
+Use the provided similar past incidents as context to inform your analysis.
 
-Return this exact JSON format:
+STRICT RULES:
+1. Return ONLY valid JSON.
+2. NO markdown formatting, NO extra text.
+3. Actions must be specific and executable.
+4. If similar incidents are provided, leverage their root causes and resolutions.
+
+STRICT JSON FORMAT:
 {
-  "root_causes": ["cause1", "cause2"],
-  "resolution_steps": ["step1", "step2"],
-  "priority_actions": {
-    "immediate": ["action1", "action2"],
-    "short_term": ["action1", "action2"],
-    "long_term": ["action1", "action2"]
-  },
-  "confidence": "High"
-}
-
-confidence must be: "High", "Medium", or "Low"
-All lists must have at least 2 items.
-Be specific, not generic."""
+  "incident_summary": "Short 1-sentence summary",
+  "root_cause": "Specific technical root cause based on context",
+  "immediate_actions": ["Action 1", "Action 2", "Action 3"],
+  "resolution_steps": ["Step 1", "Step 2"],
+  "confidence": "High | Medium | Low",
+  "similar_incidents": []
+}"""
 
     FALLBACK_RESPONSE = {
-        "root_causes": [
-            "Unable to determine from provided information",
-            "Retry analysis with more detailed logs"
-        ],
-        "resolution_steps": [
-            "Review application logs for error patterns",
-            "Check system resource usage (CPU, memory, disk)",
-            "Inspect recent deployment changes",
-            "Verify external service dependencies"
-        ],
-        "priority_actions": {
-            "immediate": [
-                "Stabilize affected services",
-                "Alert incident response team"
-            ],
-            "short_term": [
-                "Root cause analysis",
-                "Temporary mitigation if needed"
-            ],
-            "long_term": [
-                "Implement monitoring for this issue",
-                "Post-incident review and documentation"
-            ]
-        },
-        "confidence": "Low"
+        "incident_summary": "Analysis failed due to system error.",
+        "root_cause": "Internal processing error or API timeout.",
+        "immediate_actions": ["Check system logs", "Notify on-call engineer"],
+        "resolution_steps": ["Retry analysis later"],
+        "confidence": "Low",
+        "similar_incidents": []
     }
